@@ -1,4 +1,21 @@
+require "byebug"
+
 class TennisGame1
+  attr_reader :name1, :name2, :score1, :score2
+
+  DUECE_SCORES = {
+    0 => "Love-All",
+    1 => "Fifteen-All",
+    2 => "Thirty-All",
+  }
+
+  SCORES =  {
+    0 => "Love",
+    1 => "Fifteen",
+    2 => "Thirty",
+    3 => "Forty",
+  }
+
   def initialize(name1, name2)
     @name1 = name1
     @name2 = name2
@@ -7,7 +24,7 @@ class TennisGame1
   end
 
   def won_point(player_name)
-    if player_name == @name1
+    if player_name == name1
       @score1 += 1
     else
       @score2 += 1
@@ -15,45 +32,60 @@ class TennisGame1
   end
 
   def score
-    result = ""
-    tempScore = 0
-
-    if (@score1 == @score2)
-      result = {
-        0 => "Love-All",
-        1 => "Fifteen-All",
-        2 => "Thirty-All",
-      }.fetch(@score1, "Deuce")
-
-    elsif (@score1 >= 4 or @score2 >= 4)
-      minusResult = @score1-@score2
-      if (minusResult == 1)
-        result ="Advantage " + @name1
-      elsif (minusResult == -1)
-        result ="Advantage " + @name2
-      elsif (minusResult >= 2)
-        result = "Win for " + @name1
-      else
-        result ="Win for " + @name2
-      end
-
+    case
+    when duece?
+      print_duece_score
+    when win?
+      print_win_score
+    when advantage?
+      print_advantage_score
     else
-      (1...3).each do |i|
-        if (i==1)
-          tempScore = @score1
-        else
-          result+="-"
-          tempScore = @score2
-        end
-        result += {
-          0 => "Love",
-          1 => "Fifteen",
-          2 => "Thirty",
-          3 => "Forty",
-        }[tempScore]
-      end
+      print_normal_score
     end
-    result
+  end
+
+  def duece?
+    score1 == score2
+  end
+
+  def high_score?
+    score1 >=4 || score2 >=4
+  end
+
+  def win?
+    high_score? && difference.abs > 1
+  end
+
+  def advantage?
+    high_score? && difference.abs == 1
+  end
+
+  def print_normal_score
+    SCORES[score1] + "-" + SCORES[score2]
+  end
+
+  def print_win_score
+    if score1 > score2
+      "Win for #{name1}"
+    else
+      "Win for #{name2}"
+    end
+  end
+
+  def print_advantage_score
+    if score1 > score2
+      "Advantage #{name1}"
+    else
+      "Advantage #{name2}"
+    end
+  end
+
+  def print_duece_score
+    DUECE_SCORES.fetch(score1, "Deuce")
+  end
+
+  def difference
+    score1 - score2
   end
 end
 
@@ -242,10 +274,10 @@ class TennisGame3
         "Deuce"
       else
         s = if @score1 > @score2
-          @name1
-        else
-          @name2
-        end
+              @name1
+            else
+              @name2
+            end
 
         if (@score1-@score2)*(@score1-@score2) == 1
           "Advantage " + s
